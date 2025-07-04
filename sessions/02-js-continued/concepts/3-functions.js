@@ -6,24 +6,24 @@
 function greet(name) {
   console.log(`Hello, ${name}!`);
 }
-greet("Asha");
+greet('Asha');
 
 // Function with return
 function add(a, b) {
   return a + b;
 }
-console.log("5 + 3 =", add(5, 3));
+console.log('5 + 3 =', add(5, 3));
 
 // Function as a variable (arrow)
 const multiply = (a, b) => a * b;
-console.log("4 * 6 =", multiply(4, 6));
+console.log('4 * 6 =', multiply(4, 6));
 
 // Callback example
 function processUserInput(input, callback) {
-  console.log("Received input:", input);
+  console.log('Received input:', input);
   callback(input.toUpperCase());
 }
 
-processUserInput("sai", (upperName) => {
-  console.log("Callback processed name:", upperName);
+processUserInput('sai', (upperName) => {
+  console.log('Callback processed name:', upperName);
 });

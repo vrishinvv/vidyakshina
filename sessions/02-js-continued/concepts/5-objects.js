@@ -2,21 +2,21 @@
    OBJECTS: Properties, Nested, Loops, Lodash
 -------------------------------------------------- */
 
-const _ = require("lodash");
+const _ = require('lodash');
 
 const person = {
-  name: "Asha",
+  name: 'Asha',
   age: 25,
   address: {
-    city: "Bangalore",
+    city: 'Bangalore',
     pincode: 560001,
   },
-  hobbies: ["reading", "coding"],
+  hobbies: ['reading', 'coding'],
 };
 
 // Access nested fields
-console.log("City:", person.address.city);
-console.log("First hobby:", person.hobbies[0]);
+console.log('City:', person.address.city);
+console.log('First hobby:', person.hobbies[0]);
 
 // Add a new property
 person.isStudent = true;
@@ -30,12 +30,11 @@ for (let key in person) {
 // Get keys and values
 const keys = Object.keys(person);
 const values = Object.values(person);
-console.log("Keys:", keys);
-console.log("Values:", values);
+console.log('Keys:', keys);
+console.log('Values:', values);
 
 // Lodash: get nested safely
-console.log("Lodash get pincode:", _.get(person, "address.pincode", "N/A"));
-
+console.log('Lodash get pincode:', _.get(person, 'address.pincode', 'N/A'));
 
 // iterating key, value pairs (understand destructuring before this)
 for (const [key, value] of Object.entries(person)) {

@@ -8,7 +8,7 @@ for (let i = 1; i <= 5; i++) {
 }
 
 // Loop over an array
-const colors = ["red", "green", "blue"];
+const colors = ['red', 'green', 'blue'];
 for (let i = 0; i < colors.length; i++) {
   console.log(`Color at index ${i}: ${colors[i]}`);
 }
