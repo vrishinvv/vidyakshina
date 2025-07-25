@@ -4,24 +4,30 @@ import { useNavigate, Link } from 'react-router-dom';
 import './AuthForm.css';
 
 function Register({ setUser }) {
+  // Form input values
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+
   const navigate = useNavigate();
 
-  // Handle register button
-  const handleRegister = async () => {
+  // Runs when the Register button is clicked
+  async function handleRegister() {
     try {
-      const res = await axios.post('http://localhost:5000/auth/register', {
-        username,
-        password,
+      const response = await axios.post('http://localhost:5000/auth/register', {
+        username: username,
+        password: password
       });
 
-      setUser(res.data.user);        // Save user
-      navigate('/typing');           // Redirect to typing test
-    } catch (err) {
-      alert(err.response?.data?.error || 'Registration failed');
+      // Save logged-in user data
+      setUser(response.data.user);
+
+      // Redirect to typing page
+      navigate('/typing');
+    } catch (error) {
+      const msg = error.response?.data?.error || 'Registration failed';
+      alert(msg);
     }
-  };
+  }
 
   return (
     <div className="auth-container">
@@ -29,16 +35,17 @@ function Register({ setUser }) {
         <h2>Register</h2>
 
         <input
+          type="text"
           placeholder="Username"
           value={username}
-          onChange={e => setUsername(e.target.value)}
+          onChange={(e) => setUsername(e.target.value)}
         />
 
         <input
           type="password"
           placeholder="Password"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
         />
 
         <button onClick={handleRegister}>Register</button>

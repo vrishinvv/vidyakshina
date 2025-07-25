@@ -3,18 +3,27 @@ import { useEffect, useRef } from 'react';
 export default function TypingDisplay({ chars, typed, pos }) {
   const currentRef = useRef();
 
-  // Auto-scroll to current character
+  // Scroll to the current character when it moves
   useEffect(() => {
-    currentRef.current?.scrollIntoView({ block: 'nearest', inline: 'start' });
+    if (currentRef.current) {
+      currentRef.current.scrollIntoView({ block: 'nearest', inline: 'start' });
+    }
   }, [pos]);
 
   return (
     <div className="word-box">
       {chars.map((char, i) => {
         let cls = 'char';
+
         if (i < typed.length) {
-          cls += typed[i] === char ? ' correct' : ' incorrect';
-        } else if (i === pos) {
+          if (typed[i] === char) {
+            cls += ' correct';
+          } else {
+            cls += ' incorrect';
+          }
+        }
+
+        if (i === pos) {
           cls += ' current';
         }
 

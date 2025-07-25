@@ -3,7 +3,10 @@ import { Link } from 'react-router-dom';
 import './StatsPage.css';
 
 export default function StatsPage({ user }) {
+  // This stores the list of all past typing test results
   const [history, setHistory] = useState([]);
+
+  // This stores the average stats (wpm and accuracy)
   const [avg, setAvg] = useState({ avg_wpm: 0, avg_accuracy: 0 });
 
   const userId = user?.id;
@@ -12,30 +15,31 @@ export default function StatsPage({ user }) {
   useEffect(() => {
     if (!userId || !username) return;
 
-    const fetchStats = async () => {
-      // Fetch full test history
+    // This function fetches both history and average stats
+    async function fetchStats() {
+      // Get full typing test history
       try {
         const res = await fetch(`http://localhost:5000/results/history/${userId}`);
         const data = await res.json();
         setHistory(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.error('Error fetching history:', err.message);
+        console.error('Could not fetch history:', err.message);
         setHistory([]);
       }
 
-      // Fetch average stats
+      // Get average WPM and Accuracy
       try {
         const res = await fetch(`http://localhost:5000/results/average/${username}`);
         const data = await res.json();
         setAvg({
-          avg_wpm: Math.round(data?.avg_wpm || 0),
-          avg_accuracy: Math.round(data?.avg_accuracy || 0),
+          avg_wpm: Math.round(data.avg_wpm || 0),
+          avg_accuracy: Math.round(data.avg_accuracy || 0),
         });
       } catch (err) {
-        console.error('Error fetching average:', err.message);
+        console.error('Could not fetch averages:', err.message);
         setAvg({ avg_wpm: 0, avg_accuracy: 0 });
       }
-    };
+    }
 
     fetchStats();
   }, [userId, username]);
@@ -43,8 +47,8 @@ export default function StatsPage({ user }) {
   return (
     <div className="stats-container">
       <header>
-        <h1>📊 Typing Stats for {username}</h1>
-        <Link to="/typing" className="back-button">⬅ Back to Typing</Link>
+        <h1>📊 Stats for {username}</h1>
+        <Link to="/typing" className="back-button">⬅ Back</Link>
       </header>
 
       <section className="averages">
@@ -56,9 +60,9 @@ export default function StatsPage({ user }) {
       </section>
 
       <section className="history">
-        <h2>Recent Test History</h2>
+        <h2>Recent Typing Sessions</h2>
         {history.length === 0 ? (
-          <p>No test history found.</p>
+          <p>No history found.</p>
         ) : (
           <div className="history-list">
             {history.map((entry, i) => (

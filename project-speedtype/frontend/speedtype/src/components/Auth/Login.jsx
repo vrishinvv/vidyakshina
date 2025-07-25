@@ -4,25 +4,31 @@ import { useNavigate, Link } from 'react-router-dom';
 import './AuthForm.css';
 
 function Login({ setUser }) {
-  // Form input states
+  // Input fields
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+
   const navigate = useNavigate();
 
-  // Handle login button click
-  const handleLogin = async () => {
+  // Called when user clicks the Login button
+  async function handleLogin() {
     try {
-      const res = await axios.post('http://localhost:5000/auth/login', {
-        username,
-        password,
+      const response = await axios.post('http://localhost:5000/auth/login', {
+        username: username,
+        password: password
       });
 
-      setUser(res.data.user);        // Store user in parent
-      navigate('/typing');           // Go to typing test on success
-    } catch (err) {
-      alert(err.response?.data?.error || 'Login failed');
+      // Save user data in parent component
+      setUser(response.data.user);
+
+      // Go to typing test page
+      navigate('/typing');
+    } catch (error) {
+      // Show error message from backend or fallback
+      const msg = error.response?.data?.error || 'Login failed';
+      alert(msg);
     }
-  };
+  }
 
   return (
     <div className="auth-container">
@@ -30,16 +36,17 @@ function Login({ setUser }) {
         <h2>Login</h2>
 
         <input
+          type="text"
           placeholder="Username"
           value={username}
-          onChange={e => setUsername(e.target.value)}
+          onChange={(e) => setUsername(e.target.value)}
         />
 
         <input
           type="password"
           placeholder="Password"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
         />
 
         <button onClick={handleLogin}>Login</button>
@@ -53,3 +60,4 @@ function Login({ setUser }) {
 }
 
 export default Login;
+

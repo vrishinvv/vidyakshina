@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import TypingDisplay from './TypingDisplay.jsx';
 import './SpeedType.css';
 
-// Word bank
+// List of words for the typing test
 const WORDS = [
   'the', 'and', 'that', 'have', 'for', 'not', 'with', 'you', 'this', 'but',
   'his', 'from', 'they', 'say', 'her', 'she', 'will', 'one', 'all', 'would',
@@ -15,172 +15,196 @@ const WORDS = [
   'because', 'any', 'these', 'give', 'day', 'most', 'us'
 ];
 
-// Picks random set of words
-const getWords = (count = 30) =>
-  [...WORDS].sort(() => 0.5 - Math.random()).slice(0, count);
+// Pick random words
+function getWords(count) {
+  const shuffled = [...WORDS].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
 
 export default function TypingTest({ user }) {
-  // App state
-  const [wordList, setWordList] = useState([]);
-  const [typed, setTyped] = useState([]);
-  const [pos, setPos] = useState(0);
-  const [time, setTime] = useState(60);
-  const [duration, setDuration] = useState(60);
-  const [started, setStarted] = useState(false);
-  const [done, setDone] = useState(false);
-  const [showStart, setShowStart] = useState(true);
+  const [words, setWords] = useState([]);
+  const [typedChars, setTypedChars] = useState([]);
+  const [charIndex, setCharIndex] = useState(0);
+
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [testDuration, setTestDuration] = useState(60);
+
+  const [testStarted, setTestStarted] = useState(false);
+  const [testEnded, setTestEnded] = useState(false);
+
+  const [showStartMessage, setShowStartMessage] = useState(true);
   const [wpm, setWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(0);
+
   const [startTime, setStartTime] = useState(null);
+  const containerRef = useRef();
 
-  const ref = useRef();
+  // Full text user needs to type
+  const fullText = useMemo(() => words.join(' ') + ' ', [words]);
+  const allChars = useMemo(() => fullText.split(''), [fullText]);
 
-  // Full string of words to type
-  const fullText = useMemo(() => wordList.join(' ') + ' ', [wordList]);
-  const chars = useMemo(() => fullText.split(''), [fullText]);
-
-  // On first load, get initial words
+  // Load words once on page load
   useEffect(() => {
-    const load = async () => {
-      setWordList(await getWords(200));
-      ref.current?.focus();
-    };
-    load();
+    async function loadWords() {
+      const newWords = await getWords(200);
+      setWords(newWords);
+      if (containerRef.current) {
+        containerRef.current.focus();
+      }
+    }
+
+    loadWords();
   }, []);
 
-  // Timer countdown
+  // Timer logic
   useEffect(() => {
-    if (!started || done) return;
-    if (time > 0) {
-      const t = setTimeout(() => setTime(t => t - 1), 1000);
-      return () => clearTimeout(t);
+    if (!testStarted || testEnded) return;
+
+    if (timeLeft > 0) {
+      const timer = setTimeout(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+
+      return () => clearTimeout(timer);
     }
-    endTest();
-  }, [time, started, done]);
 
-  // Handle key presses
-  const handleKey = (e) => {
-    if (done) return;
+    // Time's up
+    finishTest();
+  }, [timeLeft, testStarted, testEnded]);
 
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      exit();
+  // Handle all key presses
+  function handleKeyPress(event) {
+    const key = event.key;
+
+    // Don't respond if test already ended
+    if (testEnded) return;
+
+    // ESC exits the test
+    if (key === 'Escape') {
+      event.preventDefault();
+      exitTest();
       return;
     }
-  
-    // Tab + Enter can restart anytime
-    if (e.key === 'Enter' && e.getModifierState('Tab')) {
-      e.preventDefault();
-      reset();
+
+    // Tab + Enter restarts the test
+    if (key === 'Enter' && event.getModifierState('Tab')) {
+      event.preventDefault();
+      restartTest();
       return;
     }
-  
 
-    // Start test on spacebar
-    if (showStart && e.key === ' ') {
-      setStarted(true);
-      setShowStart(false);
+    // Start the test with spacebar
+    if (showStartMessage && key === ' ') {
+      setTestStarted(true);
+      setShowStartMessage(false);
       setStartTime(Date.now());
       return;
     }
 
-    if (!started) return;
+    if (!testStarted) return;
 
-    if (e.key === 'Backspace') {
-      setTyped(t => t.slice(0, -1));
-      setPos(p => Math.max(0, p - 1));
+    // Backspace removes last typed character
+    if (key === 'Backspace') {
+      setTypedChars(prev => prev.slice(0, -1));
+      setCharIndex(prev => Math.max(0, prev - 1));
       return;
     }
 
-    if (e.key.length === 1 || e.key === ' ') {
-      setTyped(t => [...t, e.key]);
-      setPos(p => p + 1);
+    // Type character
+    if (key.length === 1 || key === ' ') {
+      setTypedChars(prev => [...prev, key]);
+      setCharIndex(prev => prev + 1);
     }
 
-    // Add more words if running low
-    if (typed.length >= Math.floor(chars.length * 0.8)) {
-      setWordList(w => [...w, ...getWords(50)]);
+    // Load more words if typed too much
+    if (typedChars.length >= Math.floor(allChars.length * 0.8)) {
+      const extraWords = getWords(50);
+      setWords(prev => [...prev, ...extraWords]);
     }
-  };
+  }
 
-  // Calculate results and send to backend
-  const endTest = async () => {
-    const correct = typed.reduce((c, ch, i) => c + (ch === fullText[i] ? 1 : 0), 0);
-    const total = typed.length;
-    const acc = total ? Math.round((correct / total) * 100) : 0;
-    const mins = (Date.now() - startTime) / 60000;
-    const wordsPerMin = mins ? Math.round((correct / 5) / mins) : 0;
+  // Calculate WPM and accuracy
+  async function finishTest() {
+    let correctCount = 0;
+    for (let i = 0; i < typedChars.length; i++) {
+      if (typedChars[i] === fullText[i]) {
+        correctCount++;
+      }
+    }
 
-    setWpm(wordsPerMin);
+    const totalTyped = typedChars.length;
+    const acc = totalTyped ? Math.round((correctCount / totalTyped) * 100) : 0;
+    const elapsedMinutes = (Date.now() - startTime) / 60000;
+    const calculatedWPM = elapsedMinutes ? Math.round((correctCount / 5) / elapsedMinutes) : 0;
+
+    setWpm(calculatedWPM);
     setAccuracy(acc);
-    setDone(true);
+    setTestEnded(true);
 
-    localStorage.setItem('userId', user.id);
-
-    // Save result to backend
     try {
       await fetch('http://localhost:5000/results/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, wpm: wordsPerMin, accuracy: acc })
+        body: JSON.stringify({ userId: user.id, wpm: calculatedWPM, accuracy: acc })
       });
     } catch (err) {
       console.error('Error saving result:', err);
     }
-  };
+  }
 
-  // Restart test
-  const reset = async () => {
-    setWordList(await getWords(200));
-    setTyped([]);
-    setPos(0);
-    setStarted(false);
-    setDone(false);
-    setTime(duration);
-    setShowStart(true);
+  // Reset test
+  async function restartTest() {
+    const newWords = await getWords(200);
+    setWords(newWords);
+    setTypedChars([]);
+    setCharIndex(0);
+    setTestStarted(false);
+    setTestEnded(false);
+    setTimeLeft(testDuration);
+    setShowStartMessage(true);
     setWpm(0);
     setAccuracy(0);
-    setTimeout(() => ref.current?.focus(), 0);
-  };
+    setTimeout(() => containerRef.current?.focus(), 0);
+  }
 
-  // Exit current test
-  const exit = async () => {
-    setWordList(await getWords(200));
-    setTyped([]);
-    setPos(0);
-    setStarted(false);
-    setDone(false);
-    setTime(duration);
-    setShowStart(true);
-    setTimeout(() => ref.current?.focus(), 0);
-  };
+  // Exit test (like reset but doesn’t show results)
+  async function exitTest() {
+    const newWords = await getWords(200);
+    setWords(newWords);
+    setTypedChars([]);
+    setCharIndex(0);
+    setTestStarted(false);
+    setTestEnded(false);
+    setTimeLeft(testDuration);
+    setShowStartMessage(true);
+    setTimeout(() => containerRef.current?.focus(), 0);
+  }
 
   return (
     <div
       className="typing-container"
       tabIndex={0}
-      ref={ref}
-      onKeyDown={handleKey}
+      ref={containerRef}
+      onKeyDown={handleKeyPress}
     >
       <h2>Typing Test</h2>
-      <div className="timer-display">{time}s</div>
+      <div className="timer-display">{timeLeft}s</div>
 
-      {/* Word/character rendering */}
-      <TypingDisplay chars={chars} typed={typed} pos={pos} />
+      <TypingDisplay chars={allChars} typed={typedChars} pos={charIndex} />
 
-      {showStart ? (
+      {showStartMessage ? (
         <>
           <div className="timer-options">
-            {[15, 30, 60, 120].map(t => (
+            {[15, 30, 60, 120].map((val) => (
               <button
-                key={t}
-                className={t === duration ? 'selected' : ''}
+                key={val}
+                className={val === testDuration ? 'selected' : ''}
                 onClick={() => {
-                  setDuration(t);
-                  setTime(t);
+                  setTestDuration(val);
+                  setTimeLeft(val);
                 }}
               >
-                {t}
+                {val}
               </button>
             ))}
           </div>
@@ -188,7 +212,7 @@ export default function TypingTest({ user }) {
         </>
       ) : (
         <>
-          {done && (
+          {testEnded && (
             <div className="result-panel">
               <p><strong>WPM:</strong> {wpm}</p>
               <p><strong>Accuracy:</strong> {accuracy}%</p>
@@ -197,8 +221,8 @@ export default function TypingTest({ user }) {
 
           <div className="controls">
             <Link to="/stats" className="stats-button">View Stats</Link>
-            <button onClick={reset}>Retry</button>
-            <button onClick={exit}>Exit</button>
+            <button onClick={restartTest}>Retry</button>
+            <button onClick={exitTest}>Exit</button>
             <button onClick={() => window.location.reload()} className="logout-button">Logout</button>
           </div>
         </>
