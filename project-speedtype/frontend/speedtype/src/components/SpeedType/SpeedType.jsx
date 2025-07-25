@@ -62,6 +62,20 @@ export default function TypingTest({ user }) {
   const handleKey = (e) => {
     if (done) return;
 
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      exit();
+      return;
+    }
+  
+    // Tab + Enter can restart anytime
+    if (e.key === 'Enter' && e.getModifierState('Tab')) {
+      e.preventDefault();
+      reset();
+      return;
+    }
+  
+
     // Start test on spacebar
     if (showStart && e.key === ' ') {
       setStarted(true);
