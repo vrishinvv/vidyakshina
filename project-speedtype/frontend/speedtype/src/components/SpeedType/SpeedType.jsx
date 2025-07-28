@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import TypingDisplay from './TypingDisplay.jsx';
 import './SpeedType.css';
-
+// Don't have inline functions
 // List of words for the typing test
 const WORDS = [
   'the', 'and', 'that', 'have', 'for', 'not', 'with', 'you', 'this', 'but',
@@ -37,6 +37,8 @@ export default function TypingTest({ user }) {
   const [accuracy, setAccuracy] = useState(0);
 
   const [startTime, setStartTime] = useState(null);
+  const [colorBlindMode, setColorBlindMode] = useState(false);
+
   const containerRef = useRef();
 
   // Full text user needs to type
@@ -45,8 +47,8 @@ export default function TypingTest({ user }) {
 
   // Load words once on page load
   useEffect(() => {
-    async function loadWords() {
-      const newWords = await getWords(200);
+    function loadWords() {
+      const newWords = getWords(200);
       setWords(newWords);
       if (containerRef.current) {
         containerRef.current.focus();
@@ -79,10 +81,10 @@ export default function TypingTest({ user }) {
     // Don't respond if test already ended
     if (testEnded) return;
 
-    // ESC exits the test
+    // ESC exits the test Escape, space bar, tab and enter should be defined as constants
     if (key === 'Escape') {
       event.preventDefault();
-      exitTest();
+      restartTest();
       return;
     }
 
@@ -140,7 +142,7 @@ export default function TypingTest({ user }) {
     setWpm(calculatedWPM);
     setAccuracy(acc);
     setTestEnded(true);
-
+    // all url endpoints(localhost:5000) should come from the .env file configs.js and const.js
     try {
       await fetch('http://localhost:5000/results/', {
         method: 'POST',
@@ -152,24 +154,10 @@ export default function TypingTest({ user }) {
     }
   }
 
-  // Reset test
-  async function restartTest() {
-    const newWords = await getWords(200);
-    setWords(newWords);
-    setTypedChars([]);
-    setCharIndex(0);
-    setTestStarted(false);
-    setTestEnded(false);
-    setTimeLeft(testDuration);
-    setShowStartMessage(true);
-    setWpm(0);
-    setAccuracy(0);
-    setTimeout(() => containerRef.current?.focus(), 0);
-  }
 
-  // Exit test (like reset but doesn’t show results)
-  async function exitTest() {
-    const newWords = await getWords(200);
+  //
+  function restartTest() {
+    const newWords = getWords(200);
     setWords(newWords);
     setTypedChars([]);
     setCharIndex(0);
@@ -187,10 +175,29 @@ export default function TypingTest({ user }) {
       ref={containerRef}
       onKeyDown={handleKeyPress}
     >
+    <div className="colorblind-toggle">
+  <label className="switch">
+    <input
+      type="checkbox"
+      checked={colorBlindMode}
+      onChange={() => setColorBlindMode(prev => !prev)}
+    />
+    <span className="slider round"></span>
+  </label>
+  <span className="label-text">Color Blind Mode</span>
+</div>
+
+
       <h2>Typing Test</h2>
       <div className="timer-display">{timeLeft}s</div>
 
-      <TypingDisplay chars={allChars} typed={typedChars} pos={charIndex} />
+      <TypingDisplay
+  chars={allChars}
+  typed={typedChars}
+  pos={charIndex}
+  colorBlindMode={colorBlindMode}
+/>
+
 
       {showStartMessage ? (
         <>
@@ -222,7 +229,6 @@ export default function TypingTest({ user }) {
           <div className="controls">
             <Link to="/stats" className="stats-button">View Stats</Link>
             <button onClick={restartTest}>Retry</button>
-            <button onClick={exitTest}>Exit</button>
             <button onClick={() => window.location.reload()} className="logout-button">Logout</button>
           </div>
         </>

@@ -1,12 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
-export default function TypingDisplay({ chars, typed, pos }) {
-  const currentRef = useRef();
-
+export default function TypingDisplay({ chars, typed, pos, colorBlindMode }) {
   // Scroll to the current character when it moves
   useEffect(() => {
-    if (currentRef.current) {
-      currentRef.current.scrollIntoView({ block: 'nearest', inline: 'start' });
+    const currentChar = document.getElementById('current-char');
+    if (currentChar) {
+      currentChar.scrollIntoView({ block: 'nearest', inline: 'start' });
     }
   }, [pos]);
 
@@ -16,10 +15,11 @@ export default function TypingDisplay({ chars, typed, pos }) {
         let cls = 'char';
 
         if (i < typed.length) {
-          if (typed[i] === char) {
-            cls += ' correct';
+          const isCorrect = typed[i] === char;
+          if (isCorrect) {
+            cls += colorBlindMode ? ' cb-correct' : ' correct';
           } else {
-            cls += ' incorrect';
+            cls += colorBlindMode ? ' cb-incorrect' : ' incorrect';
           }
         }
 
@@ -31,7 +31,7 @@ export default function TypingDisplay({ chars, typed, pos }) {
           <span
             key={i}
             className={cls}
-            ref={i === pos ? currentRef : null}
+            id={i === pos ? 'current-char' : undefined}
           >
             {char}
           </span>
