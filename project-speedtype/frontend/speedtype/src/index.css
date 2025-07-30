@@ -14,7 +14,7 @@ code {
 body {
   margin: 0;
   padding: 0;
-  background: linear-gradient(120deg, #74ebd5, #9face6);
+  background: linear-gradient(90deg, #74ebd5, #9face6);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #333;
 }
