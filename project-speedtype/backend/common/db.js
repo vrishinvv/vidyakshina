@@ -1,4 +1,4 @@
-// db.js
+// common/db.js
 const { Pool } = require('pg');
 const { db } = require('./configs'); 
 
