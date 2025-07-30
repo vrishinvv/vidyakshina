@@ -58,7 +58,7 @@
 // routes/results.js - Handles storing and fetching scores
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const db = require('../common/db');
 
 // Save a result
 router.post('/', async (req, res) => {
