@@ -1,6 +1,15 @@
 /* --------------------------------------------------
    Destructuring
 -------------------------------------------------- */
+const person = {
+  name: 'Asha',
+  age: 25,
+  address: {
+    city: 'Bangalore',
+    pincode: 560001,
+  },
+  hobbies: ['reading', 'coding'],
+};
 
 // destructuring - object
 const {

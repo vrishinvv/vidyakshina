@@ -11,7 +11,7 @@ if (age >= 18) {
 }
 
 // Nested if
-const score = 75;
+const score = 90;
 
 if (score >= 90) {
   console.log('Grade: A');
@@ -20,3 +20,13 @@ if (score >= 90) {
 } else {
   console.log('Grade: C or below');
 }
+
+if(score>= 90)
+  console.log('Grade: A');
+if(score >= 75)
+{
+  console.log('Grade: B');
+  console.log('You did well!');
+}
+else if(score < 75)
+  console.log('Grade: C or below');

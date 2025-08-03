@@ -1,12 +1,11 @@
 /* --------------------------------------------------
    OPERATORS CHEAT-SHEET
    -------------------------------------------------- */
-const a = 8,
-  b = 3;
+const a = 8, b = 3;
 
 // 1️⃣  Arithmetic
 console.log('a + b =', a + b); // 11
-console.log('a ** b =', a ** b); // exponentiation → 512 :contentReference[oaicite:4]{index=4}
+console.log('a ** b =', a ** b); // exponentiation → 512 
 
 // 2️⃣  Comparison (return booleans)
 console.log('a > b ?', a > b); // true
